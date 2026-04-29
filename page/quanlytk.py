@@ -89,6 +89,17 @@ class QuanLyTKPage:
         self.status_label = tk.Label(self.master, text="Sẵn sàng", relief="sunken", anchor="w")
         self.status_label.pack(side="bottom", fill="x")
 
+        mh_btn = CustomButton(
+            button_frame,
+            text="Quản lý môn học",
+            command=self.go_monhoc,
+            style_type="info"
+        )
+        mh_btn.pack(side="left", padx=5)
+
+    def go_monhoc(self):
+        self.app_manager.show_quanly_monhoc_page()
+
     def load_accounts(self):
         """Load accounts from CSV file and display in treeview"""
         # Clear existing items

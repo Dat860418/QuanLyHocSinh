@@ -4,6 +4,7 @@ from page.taotk import TaoTKPage
 from page.quanlytk import QuanLyTKPage
 from page.suatk import SuaTKPage
 from page.quanly_sv import QuanLySVPage
+from page.quanly_monhoc import QuanLyMonHocPage
 
 class AppManager:
     def __init__(self):
@@ -51,3 +52,8 @@ class AppManager:
         self.clear_current_page()
         self.root.geometry("600x400")
         self.current_page = QuanLySVPage(self.root, self)
+
+    def show_quanly_monhoc_page(self):
+        self.clear_current_page()
+        self.root.geometry("600x400")
+        self.current_page = QuanLyMonHocPage(self.root, self)
