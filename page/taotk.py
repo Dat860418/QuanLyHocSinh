@@ -1,77 +1,68 @@
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import messagebox, ttk
 
 from common.button import CustomButton
-
-
-# Create main window
+from query.taikhoan_query import TaiKhoanQuery
 
 
 class TaoTKPage:
+    """Màn hình tạo tài khoản mới và ghi vào taikhoan.csv qua TaiKhoanQuery."""
+
     def __init__(self, master, app_manager):
         self.master = master
         self.app_manager = app_manager
+        self.q = TaiKhoanQuery()
         self.config()
         self.view()
 
     def config(self):
         self.master.title("Tạo tài khoản")
-        self.master.geometry("300x300")
+        self.master.geometry("320x330")
 
     def view(self):
-        # Add a label
-        label = tk.Label(self.master, text="Tạo tài khoản", font=("Arial", 20))
-        label.pack(pady=10)
-        lib_user = tk.Label(self.master, text="Username:")
-        lib_user.place(x=20, y=60)
+        tk.Label(self.master, text="Tạo tài khoản", font=("Arial", 20)).pack(pady=10)
 
-        lib_pass = tk.Label(self.master, text="Password:")
-        lib_pass.place(x=20, y=100)
+        labels = ["Username:", "Password:", "Họ tên:", "SĐT:", "Role:"]
+        for idx, text in enumerate(labels):
+            tk.Label(self.master, text=text).place(x=20, y=60 + idx * 40)
 
         self.entry_username = tk.Entry(self.master)
-        self.entry_username.place(x=90, y=60)
-
+        self.entry_username.place(x=100, y=60)
         self.entry_password = tk.Entry(self.master, show="*")
-        self.entry_password.place(x=90, y=100)
-
-        self.hoten = tk.Label(self.master, text="Họ tên:")
-        self.hoten.place(x=20, y=140)
-
+        self.entry_password.place(x=100, y=100)
         self.entry_hoten = tk.Entry(self.master)
-        self.entry_hoten.place(x=90, y=140)
-
-        self.sdt = tk.Label(self.master, text="SĐT:")
-        self.sdt.place(x=20, y=180)
-
+        self.entry_hoten.place(x=100, y=140)
         self.entry_sdt = tk.Entry(self.master)
-        self.entry_sdt.place(x=90, y=180)
+        self.entry_sdt.place(x=100, y=180)
+        self.entry_chuc_vu = ttk.Combobox(self.master, values=("User", "Admin"), state="readonly")
+        self.entry_chuc_vu.set("User")
+        self.entry_chuc_vu.place(x=100, y=220)
 
-        self.chuc_vu = tk.Label(self.master, text="Chức vụ:")
-        self.chuc_vu.place(x=20, y=220)
-        self.entry_chuc_vu = tk.Entry(self.master)
-        self.entry_chuc_vu.place(x=90, y=220)
-
-        btn = CustomButton(self.master, text="Tạo tài khoản", command=self.tao_tk, style_type="primary")
-        btn.place(x=40, y=260)
-
-        btn = CustomButton(self.master, text="Quay lại Đăng nhập", command=self.back_login, style_type="success")
-        btn.place(x=160, y=260)
+        CustomButton(self.master, text="Tạo tài khoản", command=self.tao_tk, style_type="primary").place(x=45, y=270)
+        CustomButton(self.master, text="Quay lại", command=self.back_login, style_type="success").place(x=180, y=270)
 
     def back_login(self):
-        print("Quay lại trang đăng nhập")
         self.app_manager.show_login_page()
 
     def tao_tk(self):
-        username = self.entry_username.get()
-        password = self.entry_password.get()
-        hoten = self.entry_hoten.get()
-        sdt = self.entry_sdt.get()
-        chuc_vu = self.entry_chuc_vu.get()
+        # Chỉ bắt buộc 3 trường chính; SĐT/Role có thể bổ sung sau.
+        username = self.entry_username.get().strip()
+        password = self.entry_password.get().strip()
+        ho_ten = self.entry_hoten.get().strip()
+        sdt = self.entry_sdt.get().strip()
+        chuc_vu = self.entry_chuc_vu.get().strip()
 
-        if username.strip() == "" or password.strip() == "":
-            messagebox.showerror("Thông báo", "Vui lòng nhập đầy đủ thông tin")
+        if not username or not password or not ho_ten:
+            messagebox.showerror("Thông báo", "Vui lòng nhập đầy đủ username, password và họ tên")
             return
 
-        open("database/tk.csv", "a").write(username + "," + password + "," + hoten + "," + sdt + "," + chuc_vu + "\n")
+        if self.q.username_exists(username):
+            messagebox.showerror("Thông báo", "Username đã tồn tại")
+            return
+
+        # Code cũ giữ lại:
+        # self.q.create([self.q.next_id(), username, password, ho_ten, sdt, chuc_vu])
+        # Code mới: create_account sẽ hash password và tự thêm ngày tạo.
+        self.q.create_account(username, password, ho_ten, sdt, chuc_vu)
         messagebox.showinfo("Thông báo", "Tạo tài khoản thành công")
         self.app_manager.show_login_page()

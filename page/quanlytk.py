@@ -1,195 +1,154 @@
 import tkinter as tk
 from tkinter import messagebox, ttk
-import csv
-import os
 
 from common.button import CustomButton
+from query.taikhoan_query import TaiKhoanQuery
 
 
 class QuanLyTKPage:
+    """Màn hình tài khoản chỉ dành cho Admin."""
+
     def __init__(self, master, app_manager):
         self.master = master
         self.app_manager = app_manager
+        self.q = TaiKhoanQuery()
+
+        # RBAC: chặn ngay nếu User thường cố tình mở màn hình này.
+        if not self.app_manager.is_admin():
+            messagebox.showerror("Không có quyền", "Chỉ Admin mới được quản lý tài khoản")
+            self.app_manager.show_quanly_sv_page()
+            return
+
         self.config()
         self.view()
         self.load_accounts()
 
     def config(self):
         self.master.title("Quản lý tài khoản")
-        self.master.geometry("1000x400")
+        self.master.geometry("1200x520")
 
     def view(self):
-        # Title
-        title_label = tk.Label(self.master, text="Quản lý tài khoản", font=("Arial", 20, "bold"))
-        title_label.pack(pady=10)
+        tk.Label(self.master, text="Quản lý tài khoản", font=("Arial", 20, "bold")).pack(pady=10)
 
-        # Frame for buttons
         button_frame = tk.Frame(self.master)
         button_frame.pack(pady=5)
 
-        # Buttons
-        refresh_btn = CustomButton(button_frame, text="Làm mới", command=self.load_accounts, style_type="info")
-        refresh_btn.pack(side="left", padx=5)
+        CustomButton(button_frame, text="Làm mới", command=self.load_accounts, style_type="info").pack(side="left", padx=5)
+        CustomButton(button_frame, text="Tạo tài khoản", command=self.create_account, style_type="success").pack(side="left", padx=5)
+        CustomButton(button_frame, text="Xóa tài khoản", command=self.delete_account, style_type="danger").pack(side="left", padx=5)
+        CustomButton(button_frame, text="Sửa tài khoản", command=self.edit_account, style_type="warning").pack(side="left", padx=5)
+        CustomButton(button_frame, text="Reset mật khẩu", command=self.reset_password, style_type="warning").pack(side="left", padx=5)
+        CustomButton(button_frame, text="Quản lý sinh viên", command=self.go_sv, style_type="info").pack(side="left", padx=5)
+        CustomButton(button_frame, text="Quản lý môn học", command=self.go_monhoc, style_type="info").pack(side="left", padx=5)
+        CustomButton(button_frame, text="Quản lý điểm", command=self.go_diem, style_type="info").pack(side="left", padx=5)
+        CustomButton(button_frame, text="Đăng xuất", command=self.back_to_login, style_type="secondary").pack(side="left", padx=5)
 
-        create_btn = CustomButton(button_frame, text="Tạo tài khoản", command=self.create_account, style_type="success")
-        create_btn.pack(side="left", padx=5)
-
-        delete_btn = CustomButton(button_frame, text="Xóa tài khoản", command=self.delete_account, style_type="danger")
-        delete_btn.pack(side="left", padx=5)
-
-        edit_btn = CustomButton(button_frame, text="Sửa tài khoản", command=self.edit_account, style_type="warning")
-        edit_btn.pack(side="left", padx=5)
-
-        back_btn = CustomButton(button_frame, text="Quay lại", command=self.back_to_login, style_type="secondary")
-        back_btn.pack(side="right", padx=5)
-
-        sv_btn = CustomButton(
-            button_frame,
-            text="Quản lý sinh viên",
-            command=self.go_sv,
-            style_type="info"
-        )
-        sv_btn.pack(side="left", padx=5)
-
-        # Frame for treeview
         tree_frame = tk.Frame(self.master)
         tree_frame.pack(expand=True, fill="both", padx=20, pady=10)
 
-        # Treeview for displaying accounts
-        columns = ("STT", "Username", "Password", "Họ tên", "SĐT", "Chức vụ", "Action")
+        # Bảng mới không hiển thị password/hash để tránh lộ dữ liệu nhạy cảm.
+        columns = ("id", "username", "ho_ten", "sdt", "chuc_vu", "ngay_tao")
         self.account_tree = ttk.Treeview(tree_frame, columns=columns, show="headings", height=15)
 
-        # Define headings
-        self.account_tree.heading("STT", text="STT")
-        self.account_tree.heading("Username", text="Tên đăng nhập")
-        self.account_tree.heading("Password", text="Mật khẩu")
-        self.account_tree.heading("Họ tên", text="Họ tên")
-        self.account_tree.heading("SĐT", text="SĐT")
-        self.account_tree.heading("Chức vụ", text="Chức vụ")
-        self.account_tree.heading("Action", text="Hành động")
+        headings = {
+            "id": "ID",
+            "username": "Username",
+            "ho_ten": "Họ tên",
+            "sdt": "SĐT",
+            "chuc_vu": "Role",
+            "ngay_tao": "Ngày tạo",
+        }
+        for column, text in headings.items():
+            self.account_tree.heading(column, text=text)
+            self.account_tree.column(column, width=130, anchor="center")
+        self.account_tree.column("ho_ten", width=220)
 
-        # Configure column widths
-        self.account_tree.column("STT", width=50, anchor="center")
-        self.account_tree.column("Username", width=200, anchor="center")
-        self.account_tree.column("Password", width=200, anchor="center")
-        self.account_tree.column("Họ tên", width=200, anchor="center")
-        self.account_tree.column("SĐT", width=100, anchor="center")
-        self.account_tree.column("Chức vụ", width=100, anchor="center")
-        self.account_tree.column("Action", width=100, anchor="center")
-
-        # Scrollbar
         scrollbar = ttk.Scrollbar(tree_frame, orient="vertical", command=self.account_tree.yview)
         self.account_tree.configure(yscrollcommand=scrollbar.set)
-
-        # Pack treeview and scrollbar
         self.account_tree.pack(side="left", expand=True, fill="both")
         scrollbar.pack(side="right", fill="y")
 
-        # Status bar
         self.status_label = tk.Label(self.master, text="Sẵn sàng", relief="sunken", anchor="w")
         self.status_label.pack(side="bottom", fill="x")
 
-        mh_btn = CustomButton(
-            button_frame,
-            text="Quản lý môn học",
-            command=self.go_monhoc,
-            style_type="info"
-        )
-        mh_btn.pack(side="left", padx=5)
-
-    def go_monhoc(self):
-        self.app_manager.show_quanly_monhoc_page()
-
     def load_accounts(self):
-        """Load accounts from CSV file and display in treeview"""
-        # Clear existing items
+        # Làm mới Treeview từ taikhoan.csv sau khi thêm/sửa/xóa.
         for item in self.account_tree.get_children():
             self.account_tree.delete(item)
 
-        try:
-            database_path = "database/tk.csv"
-            if not os.path.exists(database_path):
-                self.status_label.config(text="Chưa có dữ liệu tài khoản")
-                return
+        data = self.q.get_all()
+        for _, row in data.iterrows():
+            self.account_tree.insert("", "end", values=[
+                row["id"],
+                row["username"],
+                row["ho_ten"],
+                row["sdt"],
+                row["chuc_vu"],
+                row.get("ngay_tao", ""),
+            ])
 
-            with open(database_path, "r", encoding="utf-8") as file:
-                csv_reader = csv.reader(file)
-                accounts = list(csv_reader)
+        self.status_label.config(text=f"Đã tải {len(data)} tài khoản")
 
-                if not accounts:
-                    self.status_label.config(text="Không có tài khoản nào")
-                    return
-
-                for idx, account in enumerate(accounts, 1):
-                    if len(account) >= 5:  # Ensure account has all required fields
-                        self.account_tree.insert("", "end", values=(idx, account[0], account[1], account[2], account[3],
-                                                                    account[4], "Edit/Delete"))
-
-                self.status_label.config(text=f"Đã tải {len(accounts)} tài khoản")
-
-        except Exception as e:
-            messagebox.showerror("Lỗi", f"Không thể tải dữ liệu: {str(e)}")
-            self.status_label.config(text="Lỗi tải dữ liệu")
+    def get_selected_username(self):
+        selected_item = self.account_tree.selection()
+        if not selected_item:
+            messagebox.showwarning("Cảnh báo", "Vui lòng chọn tài khoản")
+            return None
+        values = self.account_tree.item(selected_item[0], "values")
+        return values[1]
 
     def delete_account(self):
-        """Delete selected account"""
-        selected_item = self.account_tree.selection()
-        if not selected_item:
-            messagebox.showwarning("Cảnh báo", "Vui lòng chọn tài khoản cần xóa")
+        username = self.get_selected_username()
+        if not username:
             return
 
-        # Get selected account info
-        item_values = self.account_tree.item(selected_item[0], "values")
-        username = item_values[1]
+        account = self.q.find_exact("username", username)
+        if account.empty:
+            messagebox.showerror("Lỗi", "Không tìm thấy tài khoản")
+            return
 
-        # Confirm deletion
+        # Code cũ giữ lại:
+        # self.q.delete("username", username)
+        # Code mới: chặn xóa Admin cuối cùng để hệ thống luôn còn người quản trị.
+        role = str(account.iloc[0]["chuc_vu"]).lower()
+        if role == "admin" and self.q.count_admins() <= 1:
+            messagebox.showerror("Lỗi", "Không thể xóa Admin cuối cùng")
+            return
+
         if messagebox.askyesno("Xác nhận", f"Bạn có chắc muốn xóa tài khoản '{username}'?"):
-            try:
-                self.remove_account_from_file(username)
-                self.load_accounts()  # Refresh the list
-                messagebox.showinfo("Thành công", "Đã xóa tài khoản thành công")
-            except Exception as e:
-                messagebox.showerror("Lỗi", f"Không thể xóa tài khoản: {str(e)}")
-
-    def remove_account_from_file(self, username_to_remove):
-        """Remove account from CSV file"""
-        database_path = "database/tk.csv"
-        temp_path = "database/tk_temp.csv"
-
-        with open(database_path, "r", encoding="utf-8") as infile, \
-                open(temp_path, "w", encoding="utf-8", newline="") as outfile:
-            csv_reader = csv.reader(infile)
-            csv_writer = csv.writer(outfile)
-
-            for row in csv_reader:
-                if len(row) >= 2 and row[0] != username_to_remove:
-                    csv_writer.writerow(row)
-
-        # Replace original file with temp file
-        os.replace(temp_path, database_path)
+            self.q.delete("username", username)
+            self.load_accounts()
+            messagebox.showinfo("Thành công", "Đã xóa tài khoản")
 
     def edit_account(self):
-        """Edit selected account"""
-        selected_item = self.account_tree.selection()
-        if not selected_item:
-            messagebox.showwarning("Cảnh báo", "Vui lòng chọn tài khoản cần sửa")
+        username = self.get_selected_username()
+        if not username:
             return
+        account = self.q.find_exact("username", username)
+        if account.empty:
+            messagebox.showerror("Lỗi", "Không tìm thấy tài khoản")
+            return
+        self.app_manager.show_suatk_page(username, account.iloc[0]["password"])
 
-        # Get selected account info
-        item_values = self.account_tree.item(selected_item[0], "values")
-        old_username = item_values[1]
-        old_password = item_values[2]
-
-        # Navigate to edit page
-        self.app_manager.show_suatk_page(old_username, old_password)
+    def reset_password(self):
+        username = self.get_selected_username()
+        if not username:
+            return
+        if messagebox.askyesno("Xác nhận", f"Reset mật khẩu '{username}' về 12345?"):
+            self.q.reset_password(username)
+            messagebox.showinfo("Thành công", "Đã reset mật khẩu về 12345")
 
     def back_to_login(self):
-        """Return to login page"""
         self.app_manager.show_login_page()
 
     def create_account(self):
-        """Navigate to create account page"""
         self.app_manager.show_taotk_page()
 
     def go_sv(self):
         self.app_manager.show_quanly_sv_page()
+
+    def go_monhoc(self):
+        self.app_manager.show_quanly_monhoc_page()
+
+    def go_diem(self):
+        self.app_manager.show_quanly_diem_page()

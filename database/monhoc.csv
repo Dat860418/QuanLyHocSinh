@@ -1,3 +1,6 @@
-stt,ten_mon,ma_mon
-1,Toán,MH01
-2,Lý,MH02
+ma_mon,ten_mon,so_tin_chi
+MH001,Lập trình Python,3
+MH002,Cơ sở dữ liệu,3
+MH003,Cấu trúc dữ liệu,3
+MH004,Mạng máy tính,2
+MH005,Phân tích thiết kế hệ thống,3

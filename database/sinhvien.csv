@@ -1,52 +1,18 @@
-stt,ho_va_ten,ma_sv
-2,Nguyễn Thị B,DH12346
-3,Hoàng Văn E,DH12349
-4,Lê Thị D,DH12348
-5,Hoàng Văn E,DH12349
-6,Đỗ Thị F4,DH12350
-7,Vũ Văn G,DH12351
-8,Bùi Thị H,DH12352
-9,Đinh Văn I,DH12353
-10,Dương Thị K,DH12354
-11,Lý Văn L,DH12355
-12,Mai Thị M,DH12356
-13,Cao Văn N,DH12357
-14,Phan Thị O,DH12358
-15,Tô Văn P,DH12359
-16,Võ Thị Q,DH12360
-17,Đặng Văn R,DH12361
-18,Chu Thị S,DH12362
-19,Từ Văn T,DH12363
-20,La Thị U,DH12364
-21,Hà Văn V,DH12365
-22,Kiều Thị W,DH12366
-23,Triệu Văn X,DH12367
-24,Ông Thị Y,DH12368
-25,Âu Văn Z,DH12369
-26,Nghiêm Thị An,DH12370
-27,Úc Văn Bình,DH12371
-28,Ỷ Thị Cường,DH12372
-29,Lưu Văn Dũng,DH12373
-30,Mạc Thị Ế,DH12374
-31,Nông Văn Phúc,DH12375
-32,Ô Thị Giang,DH12376
-33,Phùng Văn Hải,DH12377
-34,Quan Thị Ích,DH12378
-35,Rùa Văn Khang,DH12379
-36,Sơn Thị Linh,DH12380
-37,Tạ Văn Minh,DH12381
-38,Uyên Thị Nga,DH12382
-39,Vương Văn Oanh,DH12383
-40,Xa Thị Phương,DH12384
-41,Yến Văn Quang,DH12385
-42,Zoa Thị Rồng,DH12386
-43,An Văn Sáng,DH12387
-44,Bá Thị Tú,DH12388
-45,Cù Văn Uy,DH12389
-46,Dã Thị Vân,DH12390
-47,Ê Văn Xuân,DH12391
-48,Phạm Thị Yên,DH12392
-49,Nguyễn Văn Zung,DH12393
-50,Trần Thị Ánh,DH12394
-51,Phạm Văn A,DH12350
-52,Nguyen Van A,DH00002
+ma_sv,ho_ten,ngay_sinh,gioi_tinh,lop,dia_chi,sdt,email,trang_thai
+SV001,Nguyễn Văn An,2004-01-15,Nam,CNTT01,Hà Nội,0911000001,an.sv001@example.com,Đang học
+SV002,Trần Thị Bình,2004-03-22,Nữ,CNTT01,Hải Phòng,0911000002,binh.sv002@example.com,Đang học
+SV003,Lê Minh Châu,2003-11-05,Nữ,CNTT02,Đà Nẵng,0911000003,chau.sv003@example.com,Đang học
+SV004,Phạm Quốc Dũng,2004-07-19,Nam,CNTT02,TP Hồ Chí Minh,0911000004,dung.sv004@example.com,Đã nghỉ
+SV005,Hoàng Gia Huy,2003-09-30,Nam,CNTT03,Cần Thơ,0911000005,huy.sv005@example.com,Đang học
+SV006,Vũ Thị Lan,2004-02-11,Nữ,CNTT03,Nam Định,0911000006,lan.sv006@example.com,Đang học
+SV007,Đặng Minh Khang,2003-12-08,Nam,CNTT01,Bắc Ninh,0911000007,khang.sv007@example.com,Đang học
+SV008,Bùi Ngọc Mai,2004-04-27,Nữ,CNTT02,Thái Bình,0911000008,mai.sv008@example.com,Đang học
+SV009,Đỗ Quang Nam,2003-06-14,Nam,CNTT03,Nghệ An,0911000009,nam.sv009@example.com,Đang học
+SV010,Ngô Thanh Phương,2004-10-03,Nữ,CNTT01,Thanh Hóa,0911000010,phuong.sv010@example.com,Đang học
+SV011,Phan Đức Tài,2003-05-21,Nam,CNTT02,Quảng Ninh,0911000011,tai.sv011@example.com,Đang học
+SV012,Lý Thu Trang,2004-08-09,Nữ,CNTT03,Hưng Yên,0911000012,trang.sv012@example.com,Đã nghỉ
+SV013,Cao Văn Việt,2003-01-29,Nam,CNTT01,Hà Nam,0911000013,viet.sv013@example.com,Đang học
+SV014,Trịnh Hải Yến,2004-12-18,Nữ,CNTT02,Vĩnh Phúc,0911000014,yen.sv014@example.com,Đang học
+SV015,Đinh Gia Bảo,2003-07-07,Nam,CNTT03,Huế,0911000015,bao.sv015@example.com,Đang học
+SV016,Mai Khánh Linh,2004-09-25,Nữ,CNTT01,Bình Dương,0911000016,linh.sv016@example.com,Đang học
+SV017,Tạ Hoàng Sơn,2003-03-13,Nam,CNTT02,Đồng Nai,0911000017,son.sv017@example.com,Đang học

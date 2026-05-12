@@ -1,194 +1,103 @@
 import tkinter as tk
-from tkinter import messagebox
-import csv
-import os
+from tkinter import messagebox, ttk
 
 from common.button import CustomButton
+from query.taikhoan_query import TaiKhoanQuery
 
 
 class SuaTKPage:
+    """Màn hình sửa tài khoản, giữ username cũ để cập nhật đúng dòng trong CSV."""
+
     def __init__(self, master, app_manager, username=None, password=None):
         self.master = master
         self.app_manager = app_manager
         self.old_username = username or ""
         self.old_password = password or ""
+        self.q = TaiKhoanQuery()
         self.config()
         self.view()
 
     def config(self):
         self.master.title("Sửa tài khoản")
-        self.master.geometry("400x300")
+        self.master.geometry("420x360")
 
     def view(self):
-        # Title
-        title_label = tk.Label(self.master, text="Sửa thông tin tài khoản", font=("Arial", 20, "bold"))
-        title_label.pack(pady=20)
+        tk.Label(self.master, text="Sửa thông tin tài khoản", font=("Arial", 18, "bold")).pack(pady=15)
 
-        # Main frame
-        main_frame = tk.Frame(self.master)
-        main_frame.pack(expand=True, fill="both", padx=40, pady=20)
+        # Lấy toàn bộ thông tin hiện tại để điền sẵn vào form sửa.
+        account = self.q.find_exact("username", self.old_username)
+        row = account.iloc[0].to_dict() if not account.empty else {}
 
-        # Old account info frame
-        old_frame = tk.LabelFrame(main_frame, text="Thông tin hiện tại", font=("Arial", 12, "bold"))
-        old_frame.pack(fill="x", pady=(0, 20))
+        frame = tk.Frame(self.master)
+        frame.pack(padx=35, pady=10, fill="x")
 
-        tk.Label(old_frame, text=f"Tên đăng nhập: {self.old_username}", font=("Arial", 11)).pack(anchor="w", padx=10,
-                                                                                                 pady=5)
-        tk.Label(old_frame, text=f"Mật khẩu: {'*' * len(self.old_password)}", font=("Arial", 11)).pack(anchor="w",
-                                                                                                       padx=10, pady=5)
+        labels = ["Username:", "Password mới:", "Họ tên:", "SĐT:", "Role:"]
+        for idx, text in enumerate(labels):
+            tk.Label(frame, text=text, width=12, anchor="w").grid(row=idx, column=0, padx=5, pady=6)
 
-        # New account info frame
-        new_frame = tk.LabelFrame(main_frame, text="Thông tin mới", font=("Arial", 12, "bold"))
-        new_frame.pack(fill="both", expand=True)
+        self.entry_username = tk.Entry(frame)
+        self.entry_username.grid(row=0, column=1, sticky="ew")
+        self.entry_password = tk.Entry(frame, show="*")
+        self.entry_password.grid(row=1, column=1, sticky="ew")
+        self.entry_hoten = tk.Entry(frame)
+        self.entry_hoten.grid(row=2, column=1, sticky="ew")
+        self.entry_sdt = tk.Entry(frame)
+        self.entry_sdt.grid(row=3, column=1, sticky="ew")
+        self.entry_chuc_vu = ttk.Combobox(frame, values=("User", "Admin"), state="readonly")
+        self.entry_chuc_vu.grid(row=4, column=1, sticky="ew")
+        frame.columnconfigure(1, weight=1)
 
-        # Username input
-        username_frame = tk.Frame(new_frame)
-        username_frame.pack(fill="x", padx=10, pady=10)
+        self.entry_username.insert(0, row.get("username", self.old_username))
+        # Không hiển thị hash thật; để trống nghĩa là giữ mật khẩu cũ.
+        self.entry_password.insert(0, "")
+        self.entry_hoten.insert(0, row.get("ho_ten", ""))
+        self.entry_sdt.insert(0, row.get("sdt", ""))
+        self.entry_chuc_vu.set(row.get("chuc_vu", "User"))
 
-        tk.Label(username_frame, text="Tên đăng nhập mới:", width=15, anchor="w").pack(side="left")
-        self.entry_username = tk.Entry(username_frame, font=("Arial", 11))
-        self.entry_username.pack(side="right", fill="x", expand=True, padx=(10, 0))
-        self.entry_username.insert(0, self.old_username)
-
-        # Password input
-        password_frame = tk.Frame(new_frame)
-        password_frame.pack(fill="x", padx=10, pady=10)
-
-        tk.Label(password_frame, text="Mật khẩu mới:", width=15, anchor="w").pack(side="left")
-        self.entry_password = tk.Entry(password_frame, show="*", font=("Arial", 11))
-        self.entry_password.pack(side="right", fill="x", expand=True, padx=(10, 0))
-        self.entry_password.insert(0, self.old_password)
-
-        # Show password checkbox
-        show_pass_frame = tk.Frame(new_frame)
-        show_pass_frame.pack(fill="x", padx=10, pady=5)
-
-        self.show_password = tk.BooleanVar()
-        show_pass_check = tk.Checkbutton(show_pass_frame, text="Hiển thị mật khẩu",
-                                         variable=self.show_password, command=self.toggle_password)
-        show_pass_check.pack(side="right")
-
-        # Validation info
-        info_frame = tk.Frame(new_frame)
-        info_frame.pack(fill="x", padx=10, pady=5)
-
-        info_text = "• Tên đăng nhập và mật khẩu không được để trống\n• Tên đăng nhập không được trùng với tài khoản khác"
-        tk.Label(info_frame, text=info_text, justify="left", font=("Arial", 9), fg="gray").pack(anchor="w")
-
-        # Buttons frame
         button_frame = tk.Frame(self.master)
-        button_frame.pack(pady=20)
-
-        save_btn = CustomButton(button_frame, text="Lưu thay đổi", command=self.save_changes, style_type="success")
-        save_btn.pack(side="left", padx=10)
-
-        cancel_btn = CustomButton(button_frame, text="Hủy bỏ", command=self.cancel, style_type="secondary")
-        cancel_btn.pack(side="left", padx=10)
-
-        reset_btn = CustomButton(button_frame, text="Khôi phục", command=self.reset_form, style_type="warning")
-        reset_btn.pack(side="left", padx=10)
-
-    def toggle_password(self):
-        """Toggle password visibility"""
-        if self.show_password.get():
-            self.entry_password.config(show="")
-        else:
-            self.entry_password.config(show="*")
-
-    def reset_form(self):
-        """Reset form to original values"""
-        self.entry_username.delete(0, tk.END)
-        self.entry_username.insert(0, self.old_username)
-        self.entry_password.delete(0, tk.END)
-        self.entry_password.insert(0, self.old_password)
-
-    def validate_input(self):
-        """Validate user input"""
-        new_username = self.entry_username.get().strip()
-        new_password = self.entry_password.get().strip()
-
-        if not new_username or not new_password:
-            messagebox.showerror("Lỗi", "Vui lòng nhập đầy đủ thông tin")
-            return False
-
-        # Check if username already exists (excluding current account)
-        if new_username != self.old_username and self.username_exists(new_username):
-            messagebox.showerror("Lỗi", f"Tên đăng nhập '{new_username}' đã tồn tại")
-            return False
-
-        return True
-
-    def username_exists(self, username):
-        """Check if username already exists in database"""
-        try:
-            database_path = "database/tk.csv"
-            if not os.path.exists(database_path):
-                return False
-
-            with open(database_path, "r", encoding="utf-8") as file:
-                csv_reader = csv.reader(file)
-                for row in csv_reader:
-                    if len(row) >= 2 and row[0] == username:
-                        return True
-            return False
-        except Exception:
-            return False
+        button_frame.pack(pady=15)
+        CustomButton(button_frame, text="Lưu", command=self.save_changes, style_type="success").pack(side="left", padx=8)
+        CustomButton(button_frame, text="Hủy", command=self.cancel, style_type="secondary").pack(side="left", padx=8)
 
     def save_changes(self):
-        """Save changes to database"""
-        if not self.validate_input():
+        # Kiểm tra dữ liệu và trùng username trước khi ghi lại CSV.
+        username = self.entry_username.get().strip()
+        password = self.entry_password.get().strip()
+        ho_ten = self.entry_hoten.get().strip()
+        sdt = self.entry_sdt.get().strip()
+        chuc_vu = self.entry_chuc_vu.get().strip()
+
+        if not username or not ho_ten:
+            messagebox.showerror("Lỗi", "Vui lòng nhập username và họ tên")
             return
 
-        new_username = self.entry_username.get().strip()
-        new_password = self.entry_password.get().strip()
-
-        # Check if any changes were made
-        if new_username == self.old_username and new_password == self.old_password:
-            messagebox.showinfo("Thông báo", "Không có thay đổi nào được thực hiện")
+        if self.q.username_exists(username, exclude_username=self.old_username):
+            messagebox.showerror("Lỗi", "Username đã tồn tại")
             return
 
-        try:
-            self.update_account_in_file(new_username, new_password)
-            messagebox.showinfo("Thành công", "Đã cập nhật tài khoản thành công")
-            self.app_manager.show_quanlytk_page()
-        except Exception as e:
-            messagebox.showerror("Lỗi", f"Không thể cập nhật tài khoản: {str(e)}")
+        account = self.q.find_exact("username", self.old_username)
+        if account.empty:
+            messagebox.showerror("Lỗi", "Không tìm thấy tài khoản")
+            return
 
-    def update_account_in_file(self, new_username, new_password):
-        """Update account in CSV file"""
-        database_path = "database/tk.csv"
-        temp_path = "database/tk_temp.csv"
+        # Code cũ giữ lại:
+        # account_id = account.iloc[0]["id"]
+        # self.q.update("username", self.old_username, [account_id, username, password, ho_ten, sdt, chuc_vu])
 
-        with open(database_path, "r", encoding="utf-8") as infile, \
-                open(temp_path, "w", encoding="utf-8", newline="") as outfile:
-            csv_reader = csv.reader(infile)
-            csv_writer = csv.writer(outfile)
-
-            for row in csv_reader:
-                if len(row) >= 2:
-                    if row[0] == self.old_username:
-                        new_row = row.copy()
-
-                        new_row[0] = new_username
-                        new_row[1] = new_password
-
-                        csv_writer.writerow(new_row)
-                    else:
-                        csv_writer.writerow(row)
-
-        # Replace original file with temp file
-        os.replace(temp_path, database_path)
+        # Code mới: update_account sẽ hash password mới, hoặc giữ hash cũ nếu ô password trống.
+        row = account.iloc[0]
+        password_to_save = password or row["password"]
+        self.q.update_account(
+            self.old_username,
+            username,
+            password_to_save,
+            ho_ten,
+            sdt,
+            chuc_vu,
+            row.get("ngay_tao", ""),
+        )
+        messagebox.showinfo("Thành công", "Đã cập nhật tài khoản")
+        self.app_manager.show_quanlytk_page()
 
     def cancel(self):
-        """Cancel and return to account management"""
-        if self.has_unsaved_changes():
-            if messagebox.askyesno("Xác nhận", "Bạn có chắc muốn hủy? Các thay đổi sẽ không được lưu."):
-                self.app_manager.show_quanlytk_page()
-        else:
-            self.app_manager.show_quanlytk_page()
-
-    def has_unsaved_changes(self):
-        """Check if there are unsaved changes"""
-        current_username = self.entry_username.get().strip()
-        current_password = self.entry_password.get().strip()
-        return (current_username != self.old_username or current_password != self.old_password)
+        self.app_manager.show_quanlytk_page()
